@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  # Primul container (Serverul nostru principal)
+  server_local:
+    build: .
+    command: python -u server.py
+    ports:
+      - "5000:5000" # Mapam portul 9999 din afara catre 9999 din interior
+    volumes:
+      - ./mailboxes:/app/mailboxes # Sincronizam fisierele din container cu folderul din PC-ul tau
+
+  # Al doilea container (Serverul extern)
+  server_extern:
+    build: .
+    command: python -u server_extern.py
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./mailboxes_extern:/app/mailboxes_extern
