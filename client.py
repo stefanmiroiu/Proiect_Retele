@@ -22,16 +22,13 @@ try:
         comanda_upper = comanda_utilizator.upper()
 
         if comanda_upper == 'SEND':
-            # Colectam datele de la utilizator
             expeditor = input("  De la (ex. ion@local.ro): ").strip()
             destinatari_raw = input("  Catre (separati prin virgula, ex. ana@local.ro): ").strip()
             subiect = input("  Subiect: ").strip()
             continut = input("  Mesaj: ").strip()
 
-            # Transformam sirul de destinatari intr-o lista (array)
             lista_destinatari = [d.strip() for d in destinatari_raw.split(",") if d.strip()]
 
-            # Construim Dictionarul Python
             mesaj_dict = {
                 "sender": expeditor,
                 "recipients": lista_destinatari,
@@ -39,10 +36,8 @@ try:
                 "content": continut
             }
 
-            # Convertim Dictionarul in text JSON
             argumente = json.dumps(mesaj_dict)
             
-            # Comanda finala va arata asa: SEND {"sender": "...", "recipients": ...}
             comanda_finala = f"SEND {argumente}"
             client_socket.sendall(comanda_finala.encode('utf-8'))
 
@@ -50,13 +45,11 @@ try:
             client_socket.sendall(comanda_utilizator.encode('utf-8'))
             break
         else:
-            # Pentru orice alta comanda gresita, o trimitem oricum ca sa ne raspunda serverul
             client_socket.sendall(comanda_utilizator.encode('utf-8'))
         
         raspuns_brut = client_socket.recv(BUFFER_SIZE)
         raspuns_text = raspuns_brut.decode('utf-8')
         
-        # Incercam sa vedem daca raspunsul e un raport (JSON)
         try:
             raport = json.loads(raspuns_text)
             print("\n[RAPORT DE LIVRARE]")
@@ -64,7 +57,6 @@ try:
                 print(f" -> {adresa}: {status}")
             print("-" * 30)
         except json.JSONDecodeError:
-            # Daca nu e JSON, afisam simplu
             print(f"[SERVER]: {raspuns_text}")
 
 except Exception as e:

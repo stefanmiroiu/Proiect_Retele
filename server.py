@@ -16,7 +16,6 @@ KNOWN_DOMAINS = {
 DIRECTOR_MAILBOXES = "mailboxes"
 os.makedirs(DIRECTOR_MAILBOXES, exist_ok=True)
 
-# Am modificat functia sa returneze o confirmare (True = livrat, False = eroare)
 def forward_mesaj(domeniu, mesaj_dict):
     ip_dest, port_dest = KNOWN_DOMAINS[domeniu]
     s_forward = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -25,7 +24,6 @@ def forward_mesaj(domeniu, mesaj_dict):
         comanda = f"SEND {json.dumps(mesaj_dict)}"
         s_forward.sendall(comanda.encode('utf-8'))
         
-        # Asteptam confirmarea si o ignoram (ne intereseaza doar ca n-a dat eroare conexiunea)
         s_forward.recv(BUFFER_SIZE)
         return True, "Livrat la serverul extern"
         
@@ -53,7 +51,6 @@ def proceseaza_client(conexiune, adresa_client):
                     date_email = json.loads(argumente)
                     destinatari = date_email.get("recipients", [])
                     
-                    # Aici vom colecta statusul pentru fiecare adresa
                     raport_livrare = {}
                     
                     for destinatar in destinatari:
@@ -70,14 +67,13 @@ def proceseaza_client(conexiune, adresa_client):
                             with open(cale_fisier, "w") as f:
                                 json.dump(date_email, f, indent=4)
                             
-                            # Adaugam in raport
+                            
                             raport_livrare[destinatar] = "OK (Salvat local)"
                             
                         elif domeniu_user in KNOWN_DOMAINS:
                             mesaj_rutat = date_email.copy()
                             mesaj_rutat["recipients"] = [destinatar]
                             
-                            # Apelam functia si salvam rezultatul in raport
                             succes, motiv = forward_mesaj(domeniu_user, mesaj_rutat)
                             if succes:
                                 raport_livrare[destinatar] = "OK (Rutat)"
@@ -85,10 +81,8 @@ def proceseaza_client(conexiune, adresa_client):
                                 raport_livrare[destinatar] = f"EROARE ({motiv})"
                                 
                         else:
-                            # Domeniu necunoscut
                             raport_livrare[destinatar] = "EROARE (Domeniu necunoscut/neconfigurat)"
                     
-                    # Convertim raportul inapoi in text JSON ca sa-l trimitem clientului
                     raspuns = json.dumps(raport_livrare)
                     
                 except json.JSONDecodeError:
